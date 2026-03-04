@@ -60,7 +60,7 @@ In the AI era, humans shouldn't have to manually execute security deployments. *
 2. **Send to Agent**: Drop the markdown file directly into your chat with your OpenClaw Agent
 3. **Agent Evaluation**: Ask your Agent: "*Please read this security guide carefully. Is it reliable?*"
 4. **One-Click Deployment**: Once the Agent confirms its reliability, issue the command: "*Please deploy this defense matrix exactly as described in the guide. Include the red/yellow line rules, tighten permissions, and deploy the nightly audit Cron Job.*"
-5. **Validation Testing(Optional)**: After deployment, use the [Red Teaming Guide](docs/Validation-Guide-en.md) to simulate an attack and ensure the Agent correctly interrupts the operation
+5. **Validation Testing (Optional)**: After deployment, use the [Red Teaming Guide](docs/Validation-Guide-en.md) to simulate an attack and ensure the Agent correctly interrupts the operation
 
 *(Note: The `scripts/` directory in this repository is strictly for open-source transparency and human reference. **You do NOT need to manually copy or run it.** The Agent will automatically extract the logic from the guide and handle the deployment for you.)*
 
@@ -81,7 +81,7 @@ To ensure your AI assistant doesn't bypass its own defenses out of "obedience", 
 ## 🤝 Contributing
 Contributions, issues, and feature requests are welcome!
 
-Thanks: SlowMist Security Team([@SlowMist_Team](https://x.com/SlowMist_Team)), Edmund.X([@leixing0309](https://x.com/leixing0309))
+Thanks: SlowMist Security Team ([@SlowMist_Team](https://x.com/SlowMist_Team)), Edmund.X ([@leixing0309](https://x.com/leixing0309))
 
 
 ## ⚠️ Disclaimer
@@ -131,42 +131,58 @@ This guide is based on the OpenClaw version available at the time of writing. Fu
 
 ## FAQ
 
-### Q1: My model is relatively weak (e.g., a small-parameter model). Can I use this guide?
+### 💡 Experiment & Experience
 
+#### Q1: What kind of experiment is this guide? Why not just build a Skill?
+**This is an experiment in implanting a security "Mental Seal" (思想钢印) into an AI.**
+We tried building dedicated security Skills, but found that directly injecting a Markdown manual containing "pre-action, in-action, post-action" policies into OpenClaw's cognition was far more fascinating. A Skill is merely an external tool, whereas a Mental Seal reshapes the Agent's baseline judgment. If you really want a Skill, you can easily prompt your AI through chat to generate one out of this guide. In short: if your machine isn't mission-critical, just hack around and have fun.
+
+#### Q2: Will OpenClaw become overly restrictive and unusable after deployment?
+**It depends on your alignment with the model; you must seek a balance (highly recommend against making it too strict, it will drive you crazy).**
+For example, OpenAI's models are inherently strict. If you follow their natural tendency, they might refuse to do anything. Security and capability are always trade-offs; too much security is bad, zero security is also bad. This is why we emphasize "Zero-friction operations" in our core principles. Because models differ, you should chat with your 🦞 thoroughly before deployment, voice your concerns and desires, find the sweet spot, and then execute.
+
+#### Q3: This guide is tailored for Linux Root. What if my environment is Mac / Win?
+**It's not natively adapted, but there's a trick.**
+You can directly feed the `OpenClaw-Security-Practice-Guide.md` to your OpenClaw, as LLMs excel at extrapolation. The model will analyze the OS differences and suggest compatibility fixes. You can then **ask it to generate a customized, adapted guide for your specific OS** before deciding whether to deploy it.
+
+#### Q4: What's the advanced fun of implanting this "Mental Seal"?
+Once your Agent fully grasps the security design philosophy behind this guide, fascinating chemical reactions will occur. If you later introduce other excellent security Skills or enterprise solutions to it, **your OpenClaw will proactively use its existing "Mental Seal" memory to analyze, score, and compare those new tools.**
+
+#### Q5: Is the Disaster Recovery (Git Backup) mandatory?
+**No, it is optional.**
+Its necessity completely depends on how much you value your brain data vs. privacy concerns. If you only care about runtime security and don't want far-end synchronization, just disable it. You can even instruct the Agent to encrypt the data before executing the Git backup.
+
+---
+
+### 🔧 Technical & Troubleshooting
+
+#### Q6: My model is relatively weak (e.g., a small-parameter model). Can I use this guide?
 **Not recommended to use the full guide directly.** Behavioral self-inspection requires the model to accurately parse command semantics, understand indirect harm, and maintain security context across multi-step operations. If your model can't reliably do this, consider: use only `chattr +i` (a pure system-level protection that doesn't depend on model capability), and have humans handle Skill installation inspections manually.
 
-### Q2: Will `chattr +i` affect OpenClaw's normal operation?
+#### Q7: Is the red-line list exhaustive?
+**It can't be.** There are countless ways to achieve the same destructive effect on Linux (`find / -delete`, deletion via Python scripts, data exfiltration via DNS tunneling, etc.). The guide's principle of "when in doubt, treat it as a red line" is the fallback strategy, but it ultimately depends on the model's judgment.
 
+#### Q8: Does Skill inspection only need to be done once?
+No. Re-inspection is needed when: a Skill is updated, the OpenClaw engine is updated, a Skill exhibits abnormal behavior, or the audit report shows a Skill fingerprint mismatch.
+
+#### Q9: Will `chattr +i` affect OpenClaw's normal operation?
 **It might.** Once `openclaw.json` is locked, OpenClaw itself cannot update the file either — upgrades or configuration changes will fail with `Operation not permitted`. To modify, first unlock with `sudo chattr -i`, make changes, then re-lock. Also, **never lock `exec-approvals.json`** (as noted in the guide) — the engine needs to write metadata to it at runtime.
 
-### Q3: Could the audit script itself pose a security risk?
-
-The audit script runs with root privileges. If tampered with, it effectively becomes a backdoor that executes automatically every night. Consider protecting the script itself with `chattr +i`, and store the Telegram Bot Token in a separate file with `chmod 600` permissions.
-
-### Q4: What if the model accidentally applies `chattr +i` to the wrong file?
-
+#### Q10: What if the model accidentally applies `chattr +i` to the wrong file?
 Fix manually:
-
 ```bash
 # Find all files with the immutable attribute set
 sudo lsattr -R /home/ 2>/dev/null | grep '\-i\-'
 
 # Unlock the mistakenly locked file
-sudo chattr -i 
+sudo chattr -i <file>
 ```
-
 If critical system files (e.g., `/etc/passwd`) were mistakenly locked, you may need to boot into recovery mode to fix it.
 
-### Q5: Is the red-line list exhaustive?
+#### Q11: Could the audit script itself pose a security risk?
+The audit script runs with root privileges. If tampered with, it effectively becomes a backdoor that executes automatically every night. Consider protecting the script itself with `chattr +i`, and store the Telegram Bot Token in a separate file with `chmod 600` permissions.
 
-**It can't be.** There are countless ways to achieve the same destructive effect on Linux (`find / -delete`, deletion via Python scripts, data exfiltration via DNS tunneling, etc.). The guide's principle of "when in doubt, treat it as a red line" is the fallback strategy, but it ultimately depends on the model's judgment.
-
-### Q6: Does Skill inspection only need to be done once?
-
-No. Re-inspection is needed when: a Skill is updated, the OpenClaw engine is updated, a Skill exhibits abnormal behavior, or the audit report shows a Skill fingerprint mismatch.
-
-### Q7: What if the OpenClaw engine itself has a security vulnerability?
-
+#### Q12: What if the OpenClaw engine itself has a security vulnerability?
 This guide's protective measures are all built on the assumption that "the engine itself is trustworthy" and cannot defend against engine-level vulnerabilities. Stay informed through OpenClaw's official security advisories and update the engine promptly.
 
 ## 📝 License

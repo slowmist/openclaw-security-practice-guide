@@ -172,20 +172,17 @@ fi
 echo -e "\n[13/13] 大脑灾备 (Git Backup)" >> "$REPORT_FILE"
 BACKUP_STATUS=""
 if [ -d "$OC/.git" ]; then
-  (
-    cd "$OC" || exit 1
-    git add . >> "$REPORT_FILE" 2>&1 || true
-    if git diff --cached --quiet; then
-      echo "No staged changes" >> "$REPORT_FILE"
-      BACKUP_STATUS="skip"
+  git -C "$OC" add . >> "$REPORT_FILE" 2>&1 || true
+  if git -C "$OC" diff --cached --quiet; then
+    echo "No staged changes" >> "$REPORT_FILE"
+    BACKUP_STATUS="skip"
+  else
+    if git -C "$OC" commit -m "🛡️ Nightly brain backup ($DATE_STR)" >> "$REPORT_FILE" 2>&1 && git -C "$OC" push origin main >> "$REPORT_FILE" 2>&1; then
+      BACKUP_STATUS="ok"
     else
-      if git commit -m "🛡️ Nightly brain backup ($DATE_STR)" >> "$REPORT_FILE" 2>&1 && git push origin main >> "$REPORT_FILE" 2>&1; then
-        BACKUP_STATUS="ok"
-      else
-        BACKUP_STATUS="fail"
-      fi
+      BACKUP_STATUS="fail"
     fi
-  )
+  fi
 else
   BACKUP_STATUS="nogit"
 fi

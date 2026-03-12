@@ -8,8 +8,6 @@
 
 A definitive security practice guide designed specifically for **High-Privilege Autonomous AI Agents** (OpenClaw). It shifts the paradigm from traditional "host-based static defense" to "Agentic Zero-Trust Architecture", effectively mitigating risks like destructive operations, prompt injection, supply chain poisoning, and high-risk business logic execution.
 
-⚠️Before you start playing, please read the disclaimer and FAQ at the bottom.<br>
-⚠️Before you start playing, please read the disclaimer and FAQ at the bottom.<br>
 ⚠️Before you start playing, please read the disclaimer and FAQ at the bottom.
 
 ## 🎯 Scope, Scenario & Core Principles

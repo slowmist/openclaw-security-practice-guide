@@ -133,7 +133,7 @@ openclaw cron add \
   --cron "0 3 * * *" \
   --tz "<your-timezone>" \                    # 例：Asia/Shanghai、America/New_York
   --session "isolated" \
-  --message "Execute this command and output the result as-is, no extra commentary: bash ~/.openclaw/workspace/scripts/nightly-security-audit.sh" \
+  --message "Execute this command and output the result as-is, no extra commentary: bash ${OPENCLAW_STATE_DIR:-$HOME/.openclaw}/workspace/scripts/nightly-security-audit.sh" \
   --announce \
   --channel <channel> \                       # telegram、discord、signal 等
   --to <your-chat-id> \                       # 你的 chatId（非用户名）

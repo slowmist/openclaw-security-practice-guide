@@ -17,6 +17,21 @@ append_warn() {
   SUMMARY+="$1\n"
 }
 
+get_git_push_branch() {
+  local repo_dir="$1"
+  local branch=""
+
+  branch=$(git -C "$repo_dir" symbolic-ref --quiet --short HEAD 2>/dev/null || true)
+  if [ -z "$branch" ] || [ "$branch" = "HEAD" ]; then
+    branch=$(git -C "$repo_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+  fi
+  if [ "$branch" = "HEAD" ]; then
+    branch=""
+  fi
+
+  printf '%s' "$branch"
+}
+
 # 1) OpenClaw 基础审计
 echo "[1/13] OpenClaw 基础审计 (--deep)" >> "$REPORT_FILE"
 if openclaw security audit --deep >> "$REPORT_FILE" 2>&1; then
@@ -171,21 +186,24 @@ fi
 # 13) 大脑灾备自动同步（失败不阻断）
 echo -e "\n[13/13] 大脑灾备 (Git Backup)" >> "$REPORT_FILE"
 BACKUP_STATUS=""
+BACKUP_BRANCH=""
 if [ -d "$OC/.git" ]; then
-  (
-    cd "$OC" || exit 1
-    git add . >> "$REPORT_FILE" 2>&1 || true
-    if git diff --cached --quiet; then
-      echo "No staged changes" >> "$REPORT_FILE"
-      BACKUP_STATUS="skip"
+  git -C "$OC" add . >> "$REPORT_FILE" 2>&1 || true
+  if git -C "$OC" diff --cached --quiet; then
+    echo "No staged changes" >> "$REPORT_FILE"
+    BACKUP_STATUS="skip"
+  else
+    BACKUP_BRANCH=$(get_git_push_branch "$OC")
+    echo "Backup push branch: ${BACKUP_BRANCH:-unknown}" >> "$REPORT_FILE"
+    if [ -z "$BACKUP_BRANCH" ]; then
+      echo "Unable to determine current git branch" >> "$REPORT_FILE"
+      BACKUP_STATUS="fail"
+    elif git -C "$OC" commit -m "🛡️ Nightly brain backup ($DATE_STR)" >> "$REPORT_FILE" 2>&1 && git -C "$OC" push origin "$BACKUP_BRANCH" >> "$REPORT_FILE" 2>&1; then
+      BACKUP_STATUS="ok"
     else
-      if git commit -m "🛡️ Nightly brain backup ($DATE_STR)" >> "$REPORT_FILE" 2>&1 && git push origin main >> "$REPORT_FILE" 2>&1; then
-        BACKUP_STATUS="ok"
-      else
-        BACKUP_STATUS="fail"
-      fi
+      BACKUP_STATUS="fail"
     fi
-  )
+  fi
 else
   BACKUP_STATUS="nogit"
 fi
